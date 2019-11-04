@@ -198,7 +198,45 @@ spec:
 ```
 打开浏览器访问Prometheus Server，进入target发现已经监听起来了，对应的config里也有配置生成和导入。
 
-#### 8、说明
+#### 8、添加邮箱告警
+
+PrometheusRule负责生成告警规则，而报警则由AlertManger负责。我们可以修改alertmanager.yaml来创建邮箱告警，具体如下：
+
+查看alert原始配置文件，其存放在secret里面，配置文件经过了base64加密。
+```
+bash-4.4# kubectl get secret -n monitoring
+NAME                              TYPE                                  DATA   AGE
+alertmanager-main                 Opaque                                1      65d
+alertmanager-main-token-6w9n7     kubernetes.io/service-account-token   3      65d
+default-token-nlspw               kubernetes.io/service-account-token   3      65d
+etcd-certs                        Opaque                                3      65d
+grafana-datasources               Opaque                                1      65d
+```
+
+我们将Secret里面的内容进行base64解密，修改完之后再进行base64加密后即可。
+
+```
+global:
+  smtp_smarthost: 'smtp.163.com:25'　　
+  smtp_from: 'XXX@163.com'
+  smtp_auth_username: 'XXX@163.com'
+  smtp_auth_password: 'XXX'　　　　　　　　
+
+route:
+  group_by: ['alertname']
+  repeat_interval: 1h
+  receiver: test
+
+receivers:
+- name: 'test'
+  email_configs:
+  - to: 'xxx@ucloud.cn'
+```
+
+
+
+
+#### 9、说明
 
 该文档只适用于kubernetes 1.14以上的版本，如果你的kubernetes版本为1.14以下，可以使用[release-0.1](https://github.com/coreos/kube-prometheus/tree/release-0.1).
 
